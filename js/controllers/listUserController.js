@@ -1,19 +1,36 @@
-app.controller("listUserController", ["$scope", "$location", "userMngService", function($scope, $location, userMngService) {
-    $scope.pageSize = userMngService.getPagesize();
-    $scope.userlist = userMngService.getUserlist();
-    $scope.pager = userMngService.getPager();
-    $scope.totalItems = userMngService.getTotalItems();
+app.controller("listUserController", ["$scope", "$location", "userMngService", "pagerService", function($scope, $location, userMngService, pagerService) {
+    $scope.users = userMngService.userlist;
+
+    $scope.pageSize = userMngService.pagestatus.pagesize;
+    $scope.currentpage = userMngService.pagestatus.currentpage;
+    $scope.pager = pagerService.getPager($scope.users.length, $scope.currentpage, $scope.pageSize);
+
+    console.log("current page "+$scope.currentpage);
+
+    function changePagesize(size) {
+        userMngService.changePagesize($scope.pageSize);
+        $scope.pageSize = userMngService.pagestatus.pagesize;
+        $scope.currentpage = userMngService.pagestatus.currentpage;
+        $scope.pager = pagerService.getPager($scope.users.length, $scope.currentpage, $scope.pageSize);
+    }
 
     $scope.$watch('pageSize', function() {
-        userMngService.setPagesize($scope.pageSize);
-        $scope.userlist = userMngService.getUserlist();
-        $scope.pager = userMngService.getPager();
+        if ($scope.pageSize !== userMngService.pagestatus.pagesize)
+            changePagesize($scope.pageSize);
+    });
+
+    $scope.$watch('currentpage', function() {
+        if ($scope.currentpage !== userMngService.pagestatus.currentpage)
+            userMngService.changePage($scope.currentpage);
     });
 
     $scope.setPage = function(page) {
-        userMngService.setPage(page);
-        $scope.userlist = userMngService.getUserlist();
-        $scope.pager = userMngService.getPager();
+        if (page < 1 || page > $scope.pager.totalPages) {
+          return;
+        }
+
+        $scope.currentpage = page;
+        $scope.pager = pagerService.getPager($scope.users.length, $scope.currentpage, $scope.pageSize);
     };
 
     /*
@@ -26,7 +43,7 @@ app.controller("listUserController", ["$scope", "$location", "userMngService", f
     $scope.propertyName = "";
     $scope.reverse = false;
     $scope.sortBy = function(name) {
-        $scope.reverse = ($scope.propertyName === propertyName) ? !$scope.reverse : false;
+        $scope.reverse = ($scope.propertyName === name) ? !$scope.reverse : false;
         $scope.propertyName = name;
     }
 
@@ -44,9 +61,11 @@ app.controller("listUserController", ["$scope", "$location", "userMngService", f
     $scope.deleteUser = function($event, userId) {
         $event.preventDefault();
         userMngService.deleteUser(Number(userId));
-        $scope.userlist = userMngService.getUserlist();
-        $scope.pager = userMngService.getPager();
-        $scope.totalItems = userMngService.getTotalItems();
+        $scope.users = userMngService.userlist;
+        $scope.pager = pagerService.getPager($scope.users.length, $scope.currentpage, $scope.pageSize);
+        $scope.currentpage = $scope.pager.currentPage;
+        console.log($scope.currentpage);
+        console.log($scope.pager);
         $location.path("/");
     }
 }]);

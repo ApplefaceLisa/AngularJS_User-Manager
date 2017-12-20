@@ -1,13 +1,13 @@
 <div class="w3-container" ng-controller="listUserController">
     <h3>Users</h3>
     <form>
-        <label>Search : <input type="text" ng-model="searchKey"></label>
+        <label>Search : <input type="text" ng-model="searchKey" ng-model-options="{ debounce: 200 }"></label>
     </form>
     <hr/>
     <div>
       <button ng-click="sortBy(null)">Set to unsorted</button>
-      <label>items per page : <input type="number" ng-model="pageSize"></label>
-      <span>total users : {{totalItems}}</span>
+      <label>items per page : <input type="number" ng-model="pageSize" ng-model-options="{ debounce: 200 }"></label>
+      <span>total users : {{users.length}}</span>
     </div>
     <table class="w3-table w3-bordered w3-striped">
       <tr>
@@ -27,15 +27,15 @@
             <span class="sortorder" ng-show="propertyName === 'title'" ng-class="{reverse: reverse}"></span>
         </th>
         <th>
-            <span class="sortby" ng-click="sortBy('sex')">Gender</span>
-            <span class="sortorder" ng-show="propertyName === 'sex'" ng-class="{reverse: reverse}"></span>
+            <span class="sortby" ng-click="sortBy('gender')">Gender</span>
+            <span class="sortorder" ng-show="propertyName === 'gender'" ng-class="{reverse: reverse}"></span>
         </th>
         <th>
             <span class="sortby" ng-click="sortBy('age')">Age</span>
             <span class="sortorder" ng-show="propertyName === 'age'" ng-class="{reverse: reverse}"></span>
         </th>
       </tr>
-      <tr ng-repeat="user in userlist | orderBy:propertyName:reverse | filter:searchKey">
+      <tr ng-repeat="user in users | orderBy:propertyName:reverse | filter:searchKey | limitTo : pageSize : pager.startIndex">
         <td>{{user.id}}</td>
         <td>
           <button class="w3-btn w3-ripple" ng-click="editUser($event, user.id)">&#9998; Edit</button>
@@ -46,7 +46,7 @@
         <td>{{ user.fName }}</td>
         <td>{{ user.lName }}</td>
         <td>{{ user.title }}</td>
-        <td>{{ user.sex }}</td>
+        <td>{{ user.gender }}</td>
         <td>{{ user.age }}</td>
       </tr>
     </table>

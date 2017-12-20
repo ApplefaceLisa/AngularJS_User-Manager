@@ -25,6 +25,11 @@ angular.module("customServices", [])
         // calculate total pages
         var totalPages = Math.ceil(totalItems / pageSize);
 
+        /* for delete users */
+        if (currentPage > totalPages) {
+            currentPage = currentPage > 1 ? currentPage - 1 : 1;
+        }
+
         var startPage, endPage;
         if (totalPages <= 10) {
             // less than 10 total pages so show all
@@ -65,15 +70,15 @@ angular.module("customServices", [])
         };
     }
 })
-.factory("userMngService", ["pagerService", function(pagerService) {
-    var service = {};
+.factory("userMngService", [function() {
+    /* users array, all add/edit/delete operation do to this array */
     var users = [
         {id:1, fName:'Hege',  lName:"Pege", title:"Software Engineer", gender:"male", age:22},
         {id:2, fName:'Kim',   lName:"Pim", title:"Principle", gender:"female", age:45},
         {id:3, fName:'Sal',   lName:"Smith", title:"Project Manager", gender:"male", age:35 },
         {id:4, fName:'Jack',  lName:"Jones", title:"Senior Engineer", gender:"male", age:32 },
         {id:5, fName:'John',  lName:"Doe", title:"ME", gender:"male", age:30 },
-        {id:6, fName:'Peter', lName:"Pan", title:"blacksmith", gender:"male", age:19 },
+        {id:6, fName:'Peter', lName:"Pan", title:"blacksmith", gender:"male", age:19 }/*,
         {id:7, fName:'Hege',  lName:"Pege", title:"Software Engineer", gender:"male", age:22},
         {id:8, fName:'Kim',   lName:"Pim", title:"Principle", gender:"female", age:45},
         {id:9, fName:'Sal',   lName:"Smith", title:"Project Manager", gender:"male", age:35 },
@@ -85,14 +90,22 @@ angular.module("customServices", [])
         {id:15, fName:'Sal',   lName:"Smith", title:"Project Manager", gender:"male", age:35 },
         {id:16, fName:'Jack',  lName:"Jones", title:"Senior Engineer", gender:"male", age:32 },
         {id:17, fName:'John',  lName:"Doe", title:"ME", gender:"male", age:30 },
-        {id:18, fName:'Peter', lName:"Pan", title:"blacksmith", gender:"male", age:19 }];
+        {id:18, fName:'Peter', lName:"Pan", title:"blacksmith", gender:"male", age:19 }*/];
 
-    var userlist = users;
+    /* basic operations : add new user / get user by Id / edit user / delete user */
     var user_id = users.length + 1;
 
     function createUser(usrObj) {
         usrObj.id = user_id++;
         users.push(usrObj);
+    }
+
+    function getUserById(usrId) {
+        for (var i = 0; i < users.length; i++) {
+            if (users[i].id === usrId) {
+                return users[i];
+            }
+        }
     }
 
     function updateUser(usrObj) {
@@ -116,86 +129,33 @@ angular.module("customServices", [])
         users.splice(index, 1);
     }
 
-    function getUserlist() {
-        return userlist;
+    var status = {
+        pagesize : 10,
+        currentpage : 1
     }
 
-    function getUserById(usrId) {
-        for (var i = 0; i < users.length; i++) {
-            if (users[i].id === usrId) {
-                return users[i];
-            }
-        }
+    function changePagesize(size) {
+        status.pagesize = size || 10;
+        status.currentpage = 1;
     }
 
-    /**************************** pagination ****************************/
-    var pageSize = 10;
-    var currentPage = 1;
-    var pager = {};
-
-    updatePagerAndUserlist(users);    // initialize pager and userlist;
-
-    function setPagesize(pagesize) {
-        if (pagesize !== pageSize) {
-            pageSize = pagesize;
-            currentPage = 1;
-        }
+    function changePage(page) {
+        status.currentpage = page;
+        console.log("change current page "+page);
     }
 
-    function setPage(pageNo) {
-        currentPage = pageNo;
-    }
+    /*********************************************************************/
+    var service = {};
 
-    function updatePagerAndUserlist(user_arr) {
-        pager = pagerService.getPager(user_arr.length, currentPage, pageSize);
-        userlist = user_arr.slice(pager.startIndex, pager.endIndex + 1);
-    }
+    service.userlist = users;
+    service.pagestatus = status;
 
-    function getPager() {
-        return pager;
-    }
-
-    /***************************************************************************************/
-    service.newUser = function(usrObj) {
-        createUser(usrObj);
-        updatePagerAndUserlist(users);
-    };
-
-    service.editUser = function(usrObj) {
-        updateUser(usrObj);
-        updatePagerAndUserlist(users);
-    };
-
-    service.deleteUser = function(usrId) {
-        deleteUser(usrId);
-        updatePagerAndUserlist(users);
-    };
-
-    service.setPagesize = function(pagesize) {
-        setPagesize(pagesize);
-        updatePagerAndUserlist(users);
-    };
-
-    service.getPagesize = function() {
-        return pageSize;
-    };
-
-    service.setPage = function(pageNo) {
-        setPage(pageNo);
-        updatePagerAndUserlist(users);
-    };
-
-    service.getCurrPage = function() {
-        return currentPage;
-    }
-
-    service.getPager = getPager;
-    service.getUserlist = getUserlist;
+    service.newUser = createUser;
+    service.editUser = updateUser;
+    service.deleteUser = deleteUser;
     service.getUserById = getUserById;
-
-    service.getTotalItems = function() {
-        return users.length;
-    }
+    service.changePage = changePage;
+    service.changePagesize = changePagesize;
 
     return service;
 }]);
